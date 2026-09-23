@@ -4,7 +4,9 @@
   const QUESTIONS_PER_GAME = 10;
   const STARTING_LIVES = 5;
 
-  const questionBanks = window.RAALQuestionBanks || {};
+  const config = window.RAALSupabaseConfig || {};
+  const SUPABASE_URL = String(config.url || "").replace(/\/$/, "");
+  const SUPABASE_PUBLISHABLE_KEY = String(config.publishableKey || "");
 
   const modeLabels = {
     gened: "GenEd Hangman",
@@ -21,7 +23,8 @@
     streak: 0,
     bestStreak: 0,
     correct: 0,
-    answered: false
+    answered: false,
+    loading: false
   };
 
   const $ = (id) => document.getElementById(id);
@@ -45,6 +48,112 @@
     screen.classList.add("active");
   }
 
+  function showModeStatus(message, isError = false) {
+    const heroText = screens.mode.querySelector(".hero-card > p");
+    if (!heroText) return;
+    heroText.textContent = message;
+    heroText.style.color = isError ? "#b42318" : "";
+  }
+
+  function setModeButtonsDisabled(disabled) {
+    document.querySelectorAll(".mode-card").forEach(button => {
+      button.disabled = disabled;
+      button.setAttribute("aria-disabled", String(disabled));
+    });
+  }
+
+  function assertSupabaseConfig() {
+    if (!SUPABASE_URL || SUPABASE_URL.includes("PASTE_YOUR_SUPABASE")) {
+      throw new Error("Supabase Project URL is not configured yet.");
+    }
+    if (!SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY.includes("PASTE_YOUR_SUPABASE")) {
+      throw new Error("Supabase Publishable Key is not configured yet.");
+    }
+  }
+
+  async function callSupabaseFunction(functionName, body) {
+    assertSupabaseConfig();
+
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_PUBLISHABLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    const raw = await response.text();
+    let data;
+    try {
+      data = raw ? JSON.parse(raw) : null;
+    } catch {
+      data = raw;
+    }
+
+    if (!response.ok) {
+      const message = typeof data === "object" && data !== null
+        ? (data.message || data.error_description || data.hint || JSON.stringify(data))
+        : String(data || response.statusText);
+      throw new Error(`Supabase request failed (${response.status}): ${message}`);
+    }
+
+    return data;
+  }
+
+  async function fetchQuestionsFromSupabase(mode) {
+    const rows = await callSupabaseFunction("get_hangman_questions", {
+      p_mode: mode,
+      p_limit: 50
+    });
+
+    if (!Array.isArray(rows)) {
+      throw new Error("Supabase returned an unexpected question response.");
+    }
+
+    if (rows.length < QUESTIONS_PER_GAME) {
+      throw new Error(`Only ${rows.length} playable questions were returned for ${modeLabels[mode]}. At least ${QUESTIONS_PER_GAME} are required.`);
+    }
+
+    return shuffle(rows).slice(0, QUESTIONS_PER_GAME).map(normalizeQuestion);
+  }
+
+  function normalizeQuestion(row) {
+    const choices = [row.choice_a, row.choice_b, row.choice_c, row.choice_d].map(value => String(value ?? ""));
+    if (choices.some(choice => !choice.trim())) {
+      throw new Error(`Question ${row.question_id || "(unknown ID)"} has an incomplete choice set.`);
+    }
+
+    return {
+      id: String(row.question_id),
+      question: String(row.question ?? ""),
+      choices,
+      topic: String(row.topic || "General LET Review"),
+      difficulty: String(row.difficulty || "Mixed"),
+      rationale: String(row.rationale || "Review the question and choices carefully, then try again.")
+    };
+  }
+
+  async function checkAnswerOnSupabase(questionId, selectedIndex) {
+    const answerLetter = String.fromCharCode(65 + selectedIndex);
+    const rows = await callSupabaseFunction("check_hangman_answer", {
+      p_question_id: questionId,
+      p_answer: answerLetter
+    });
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error("Supabase could not verify this question.");
+    }
+
+    const result = rows[0];
+    return {
+      isCorrect: Boolean(result.is_correct),
+      correctAnswer: String(result.correct_answer || "").toUpperCase(),
+      rationale: String(result.rationale || "Review the question and choices carefully, then try again.")
+    };
+  }
+
   function shuffle(items) {
     const copy = [...items];
     for (let i = copy.length - 1; i > 0; i--) {
@@ -54,56 +163,36 @@
     return copy;
   }
 
-  function getQuestionBank(mode) {
-    const bank = questionBanks[mode];
-    if (!Array.isArray(bank)) {
-      throw new Error(`Question bank not found for mode: ${mode}`);
+  async function startGame(mode) {
+    if (state.loading) return;
+
+    state.loading = true;
+    setModeButtonsDisabled(true);
+    showModeStatus(`Loading ${modeLabels[mode]} questions…`);
+
+    try {
+      const questions = await fetchQuestionsFromSupabase(mode);
+
+      state.mode = mode;
+      state.questions = questions;
+      state.index = 0;
+      state.lives = STARTING_LIVES;
+      state.score = 0;
+      state.streak = 0;
+      state.bestStreak = 0;
+      state.correct = 0;
+      state.answered = false;
+
+      $("modeName").textContent = modeLabels[mode];
+      showScreen(screens.game);
+      renderQuestion();
+    } catch (error) {
+      console.error(error);
+      showModeStatus(`We couldn't load the questions. ${error.message}`, true);
+    } finally {
+      state.loading = false;
+      setModeButtonsDisabled(false);
     }
-    if (bank.length < QUESTIONS_PER_GAME) {
-      throw new Error(`Question bank for ${mode} needs at least ${QUESTIONS_PER_GAME} questions.`);
-    }
-    return bank;
-  }
-
-  function validateQuestion(question, mode, index) {
-    const required = ["question", "choices", "answer", "rationale", "topic", "difficulty"];
-    const missing = required.filter(key => !(key in question));
-
-    if (missing.length) {
-      throw new Error(`Invalid ${mode} question #${index + 1}: missing ${missing.join(", ")}`);
-    }
-
-    if (!Array.isArray(question.choices) || question.choices.length !== 4) {
-      throw new Error(`Invalid ${mode} question #${index + 1}: exactly 4 choices are required.`);
-    }
-
-    if (!Number.isInteger(question.answer) || question.answer < 0 || question.answer > 3) {
-      throw new Error(`Invalid ${mode} question #${index + 1}: answer must be 0, 1, 2, or 3.`);
-    }
-  }
-
-  function prepareQuestionBank(mode) {
-    const bank = getQuestionBank(mode);
-    bank.forEach((question, index) => validateQuestion(question, mode, index));
-    return bank;
-  }
-
-  function startGame(mode) {
-    const bank = prepareQuestionBank(mode);
-
-    state.mode = mode;
-    state.questions = shuffle(bank).slice(0, QUESTIONS_PER_GAME);
-    state.index = 0;
-    state.lives = STARTING_LIVES;
-    state.score = 0;
-    state.streak = 0;
-    state.bestStreak = 0;
-    state.correct = 0;
-    state.answered = false;
-
-    $("modeName").textContent = modeLabels[mode];
-    showScreen(screens.game);
-    renderQuestion();
   }
 
   function renderQuestion() {
@@ -140,52 +229,79 @@
     });
   }
 
-  function handleAnswer(selected, selectedButton) {
-    if (state.answered) return;
+  async function handleAnswer(selected, selectedButton) {
+    if (state.answered || state.loading) return;
     state.answered = true;
+    state.loading = true;
 
-    const q = state.questions[state.index];
     const buttons = [...$("choices").querySelectorAll(".choice")];
     buttons.forEach(button => { button.disabled = true; });
+    selectedButton.classList.add("selected");
+    $("feedback").className = "feedback";
+    $("feedback").textContent = "Checking your answer…";
 
-    const isCorrect = selected === q.answer;
+    const q = state.questions[state.index];
 
-    if (isCorrect) {
-      const gained = 100 + (state.streak * 25);
-      state.score += gained;
-      state.streak += 1;
-      state.bestStreak = Math.max(state.bestStreak, state.streak);
-      state.correct += 1;
+    try {
+      const result = await checkAnswerOnSupabase(q.id, selected);
+      const correctIndex = result.correctAnswer.charCodeAt(0) - 65;
 
-      selectedButton.classList.add("correct");
-      $("feedback").className = "feedback success";
-      $("feedback").innerHTML =
-        `<strong>✓ Correct! +${gained} points</strong><br>` +
-        `<span>${escapeHtml(q.rationale)}</span>`;
-    } else {
-      state.lives -= 1;
-      state.streak = 0;
-      selectedButton.classList.add("wrong");
-      buttons[q.answer].classList.add("correct");
+      if (result.isCorrect) {
+        const gained = 100 + (state.streak * 25);
+        state.score += gained;
+        state.streak += 1;
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
+        state.correct += 1;
 
+        selectedButton.classList.remove("selected");
+        selectedButton.classList.add("correct");
+        $("feedback").className = "feedback success";
+        $("feedback").innerHTML =
+          `<strong>✓ Correct! +${gained} points</strong><br>` +
+          `<span>${escapeHtml(result.rationale)}</span>`;
+      } else {
+        state.lives -= 1;
+        state.streak = 0;
+
+        selectedButton.classList.remove("selected");
+        selectedButton.classList.add("wrong");
+        if (correctIndex >= 0 && correctIndex < buttons.length) {
+          buttons[correctIndex].classList.add("correct");
+        }
+
+        const correctChoiceText = correctIndex >= 0 && correctIndex < q.choices.length
+          ? q.choices[correctIndex]
+          : `Option ${result.correctAnswer || "unknown"}`;
+
+        $("feedback").className = "feedback error";
+        $("feedback").innerHTML =
+          `<strong>✗ Not quite.</strong> The correct answer is ` +
+          `<strong>${escapeHtml(result.correctAnswer)}. ${escapeHtml(correctChoiceText)}</strong><br>` +
+          `<span>${escapeHtml(result.rationale)}</span>`;
+      }
+
+      $("score").textContent = String(state.score);
+      $("streak").textContent = String(state.streak);
+      $("progressBar").style.width = `${((state.index + 1) / QUESTIONS_PER_GAME) * 100}%`;
+      renderLives();
+      renderHangman();
+
+      if (state.lives <= 0) {
+        $("nextBtn").textContent = "See Results";
+      }
+      $("nextBtn").hidden = false;
+    } catch (error) {
+      console.error(error);
+      state.answered = false;
+      buttons.forEach(button => { button.disabled = false; });
+      selectedButton.classList.remove("selected");
       $("feedback").className = "feedback error";
       $("feedback").innerHTML =
-        `<strong>✗ Not quite.</strong> The correct answer is ` +
-        `<strong>${String.fromCharCode(65 + q.answer)}. ${escapeHtml(q.choices[q.answer])}</strong><br>` +
-        `<span>${escapeHtml(q.rationale)}</span>`;
+        `<strong>We couldn't check that answer.</strong><br>` +
+        `<span>${escapeHtml(error.message)}</span>`;
+    } finally {
+      state.loading = false;
     }
-
-    $("score").textContent = String(state.score);
-    $("streak").textContent = String(state.streak);
-    $("progressBar").style.width = `${((state.index + 1) / QUESTIONS_PER_GAME) * 100}%`;
-    renderLives();
-    renderHangman();
-
-    if (state.lives <= 0) {
-      $("nextBtn").textContent = "See Results";
-    }
-
-    $("nextBtn").hidden = false;
   }
 
   function renderLives() {
