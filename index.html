@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RAAL LEPT Hangman - Help the Future Teacher">
+  <title>RAAL LEPT Hangman</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="brand">
+      <div>
+        <p class="eyebrow">RAAL LEPT</p>
+        <h1>HANGMAN</h1>
+        <p class="tagline">Help the Future Teacher Graduate!</p>
+      </div>
+      <button id="restartBtn" class="ghost-btn" type="button">Restart</button>
+    </header>
+
+    <section id="modeScreen" class="screen active">
+      <div class="hero-card">
+        <div class="teacher-icon" aria-hidden="true">👩‍🏫</div>
+        <h2>Choose Your Challenge</h2>
+        <p>Answer LET questions correctly and keep the future teacher safe.</p>
+
+        <div class="mode-grid">
+          <button class="mode-card" data-mode="gened" type="button">
+            <span class="mode-icon">🎓</span>
+            <strong>GenEd Hangman</strong>
+          </button>
+          <button class="mode-card" data-mode="profed" type="button">
+            <span class="mode-icon">👩‍🏫</span>
+            <strong>ProfEd Hangman</strong>
+          </button>
+          <button class="mode-card" data-mode="science" type="button">
+            <span class="mode-icon">🔬</span>
+            <strong>Science Major Hangman</strong>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen" aria-live="polite">
+      <div class="top-stats">
+        <div class="stat"><span>Mode</span><strong id="modeName">GenEd Hangman</strong></div>
+        <div class="stat"><span>Question</span><strong><span id="questionNo">1</span>/10</strong></div>
+        <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+        <div class="stat"><span>Streak</span><strong id="streak">0</strong></div>
+      </div>
+
+      <div class="lives-row">
+        <div>
+          <span>Teacher Safety</span>
+          <strong id="safetyText">5 / 5</strong>
+        </div>
+        <span id="lives" class="hearts" aria-label="5 lives">❤️ ❤️ ❤️ ❤️ ❤️</span>
+      </div>
+      <div class="progress-wrap" aria-label="Game progress">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <div class="game-layout">
+        <aside class="teacher-panel">
+          <div class="rope-scene" aria-label="Future teacher safety illustration">
+            <div class="gallows">
+              <div class="post"></div>
+              <div class="top-beam"></div>
+              <div class="rope"></div>
+              <div id="hangHead" class="hang-part head"></div>
+              <div id="hangBody" class="hang-part body"></div>
+              <div id="hangLeftArm" class="hang-part arm left-arm"></div>
+              <div id="hangRightArm" class="hang-part arm right-arm"></div>
+              <div id="hangLeftLeg" class="hang-part leg left-leg"></div>
+              <div id="hangRightLeg" class="hang-part leg right-leg"></div>
+            </div>
+          </div>
+          <p class="save-text">SAVE THE TEACHER!</p>
+          <p id="encouragement" class="encouragement">Every correct answer brings the future teacher closer to graduation.</p>
+        </aside>
+
+        <section class="question-panel">
+          <div class="difficulty-row">
+            <span id="difficultyBadge" class="badge">Easy</span>
+            <span id="topicLabel" class="topic">Topic</span>
+          </div>
+
+          <h2 id="questionText">Question goes here.</h2>
+
+          <div id="choices" class="choices"></div>
+
+          <div id="feedback" class="feedback" role="status"></div>
+          <button id="nextBtn" class="primary-btn next-btn" type="button" hidden>Next Question</button>
+        </section>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="result-card">
+        <div class="result-icon">🎓</div>
+        <p class="eyebrow">GAME COMPLETE</p>
+        <h2 id="resultTitle">You made it!</h2>
+        <p id="resultMessage"></p>
+
+        <div class="result-grid">
+          <div><span>Score</span><strong id="finalScore">0</strong></div>
+          <div><span>Accuracy</span><strong id="finalAccuracy">0%</strong></div>
+          <div><span>Best Streak</span><strong id="finalStreak">0</strong></div>
+          <div><span>Questions</span><strong id="finalQuestions">10</strong></div>
+        </div>
+
+        <div class="result-actions">
+          <button id="playAgainBtn" class="primary-btn" type="button">Play Again</button>
+          <button id="chooseModeBtn" class="ghost-btn" type="button">Choose Another Mode</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>RAAL LEPT Hangman v0.1 • Prototype</p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
