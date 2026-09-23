@@ -4,256 +4,7 @@
   const QUESTIONS_PER_GAME = 10;
   const STARTING_LIVES = 5;
 
-  const questionBanks = {
-    gened: [
-      {
-        question: "Which branch of philosophy is primarily concerned with the nature, sources, and limits of knowledge?",
-        choices: ["Ethics", "Epistemology", "Aesthetics", "Logic"],
-        answer: 1,
-        rationale: "Epistemology is the branch of philosophy that studies knowledge, including its sources, justification, and limits.",
-        topic: "Philosophy",
-        difficulty: "Moderate"
-      },
-      {
-        question: "What is 15% of 200?",
-        choices: ["15", "20", "30", "35"],
-        answer: 2,
-        rationale: "15% is 0.15. Multiplying 0.15 by 200 gives 30.",
-        topic: "Mathematics",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which organelle is known as the powerhouse of the cell?",
-        choices: ["Nucleus", "Ribosome", "Mitochondrion", "Golgi apparatus"],
-        answer: 2,
-        rationale: "Mitochondria produce most of the ATP used by cells for energy-requiring processes.",
-        topic: "Biology",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which figure of speech compares two unlike things using 'like' or 'as'?",
-        choices: ["Metaphor", "Simile", "Personification", "Hyperbole"],
-        answer: 1,
-        rationale: "A simile makes a comparison using words such as 'like' or 'as.'",
-        topic: "English",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which economic principle states that, other things being equal, quantity demanded generally decreases as price increases?",
-        choices: ["Law of supply", "Law of demand", "Law of scarcity", "Law of utility"],
-        answer: 1,
-        rationale: "The law of demand describes an inverse relationship between price and quantity demanded, ceteris paribus.",
-        topic: "Economics",
-        difficulty: "Moderate"
-      },
-      {
-        question: "Which layer of Earth's atmosphere contains most of the ozone layer?",
-        choices: ["Troposphere", "Stratosphere", "Mesosphere", "Thermosphere"],
-        answer: 1,
-        rationale: "Most atmospheric ozone is concentrated in the stratosphere, forming the ozone layer.",
-        topic: "Earth Science",
-        difficulty: "Easy"
-      },
-      {
-        question: "If a triangle has angles of 40° and 60°, what is the measure of its third angle?",
-        choices: ["70°", "80°", "90°", "100°"],
-        answer: 1,
-        rationale: "The interior angles of a triangle total 180°. Thus, 180° − 40° − 60° = 80°.",
-        topic: "Mathematics",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which process involves the movement of water from Earth's surface into the atmosphere through evaporation and transpiration?",
-        choices: ["Condensation", "Precipitation", "Evapotranspiration", "Infiltration"],
-        answer: 2,
-        rationale: "Evapotranspiration combines evaporation from surfaces with transpiration from plants.",
-        topic: "Earth Science",
-        difficulty: "Moderate"
-      },
-      {
-        question: "Which statement best describes a primary source in historical research?",
-        choices: ["A later textbook summary", "An original document or firsthand account", "A study guide", "A review article"],
-        answer: 1,
-        rationale: "Primary sources provide direct or firsthand evidence from the period or event being studied.",
-        topic: "Social Science",
-        difficulty: "Moderate"
-      },
-      {
-        question: "What is the main purpose of a thesis statement in an academic essay?",
-        choices: ["To list every source", "To present the central claim or controlling idea", "To provide the conclusion only", "To define every technical term"],
-        answer: 1,
-        rationale: "A thesis statement communicates the essay's central claim or controlling idea and guides the discussion.",
-        topic: "English",
-        difficulty: "Easy"
-      }
-    ],
-
-    profed: [
-      {
-        question: "Which learning theory emphasizes learning through observation, imitation, and modeling?",
-        choices: ["Behaviorism", "Constructivism", "Social Learning Theory", "Cognitivism"],
-        answer: 2,
-        rationale: "Social Learning Theory explains that people can learn by observing others and modeling their behavior.",
-        topic: "Learning Theories",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which type of assessment is administered during instruction to monitor learning and provide feedback?",
-        choices: ["Summative", "Formative", "Placement", "Norm-referenced"],
-        answer: 1,
-        rationale: "Formative assessment is used during instruction to monitor progress and guide teaching and learning.",
-        topic: "Assessment",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which approach views learners as active participants who construct meaning from experiences?",
-        choices: ["Constructivism", "Essentialism", "Perennialism", "Classical conditioning"],
-        answer: 0,
-        rationale: "Constructivism holds that learners actively construct knowledge through experiences and interaction with their environment.",
-        topic: "Learning Theories",
-        difficulty: "Easy"
-      },
-      {
-        question: "What is the primary purpose of a Table of Specifications?",
-        choices: ["To record attendance", "To align test items with content and cognitive objectives", "To rank students", "To calculate grades automatically"],
-        answer: 1,
-        rationale: "A Table of Specifications helps ensure that assessment items represent the intended content areas and cognitive levels.",
-        topic: "Assessment",
-        difficulty: "Moderate"
-      },
-      {
-        question: "Which classroom management approach emphasizes establishing clear expectations and consistently reinforcing appropriate behavior?",
-        choices: ["Preventive management", "Random management", "Unstructured management", "Passive management"],
-        answer: 0,
-        rationale: "Preventive classroom management aims to reduce problems by establishing expectations, routines, and supportive conditions before issues occur.",
-        topic: "Classroom Management",
-        difficulty: "Moderate"
-      },
-      {
-        question: "In Bloom's revised taxonomy, which cognitive process generally represents the highest level?",
-        choices: ["Remember", "Understand", "Evaluate", "Create"],
-        answer: 3,
-        rationale: "The revised taxonomy places Create at the highest level, following Remember, Understand, Apply, Analyze, and Evaluate.",
-        topic: "Educational Objectives",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which principle of learning emphasizes that learners are more likely to remember information that is meaningful and connected to prior knowledge?",
-        choices: ["Meaningfulness", "Isolation", "Randomness", "Inconsistency"],
-        answer: 0,
-        rationale: "Meaningful learning is strengthened when new information is connected to what learners already know.",
-        topic: "Learning Principles",
-        difficulty: "Moderate"
-      },
-      {
-        question: "A teacher gives immediate feedback while students are practicing a new skill. What instructional purpose does this primarily serve?",
-        choices: ["Correcting misconceptions and guiding performance", "Assigning final grades", "Replacing instruction", "Determining class rank"],
-        answer: 0,
-        rationale: "Immediate feedback helps learners identify errors and adjust their performance while learning is still occurring.",
-        topic: "Instruction",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which curriculum principle refers to the logical arrangement of learning experiences from simpler to more complex?",
-        choices: ["Sequence", "Balance", "Integration", "Articulation"],
-        answer: 0,
-        rationale: "Sequence concerns the order in which learning experiences are arranged, often progressing from simple to complex.",
-        topic: "Curriculum",
-        difficulty: "Moderate"
-      },
-      {
-        question: "Which teacher action best demonstrates differentiated instruction?",
-        choices: ["Giving every learner exactly the same task regardless of readiness", "Varying learning activities or supports based on learner needs", "Using only one assessment method", "Removing all challenging tasks"],
-        answer: 1,
-        rationale: "Differentiated instruction adapts content, process, product, or learning environment to respond to learner readiness, interests, and needs.",
-        topic: "Differentiated Instruction",
-        difficulty: "Moderate"
-      }
-    ],
-
-    science: [
-      {
-        question: "What is the basic structural and functional unit of life?",
-        choices: ["Tissue", "Organ", "Cell", "Organ system"],
-        answer: 2,
-        rationale: "The cell is the basic structural and functional unit of living organisms.",
-        topic: "Biology",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which process converts glucose into usable cellular energy through a series of metabolic reactions?",
-        choices: ["Photosynthesis", "Cellular respiration", "Transpiration", "Translation"],
-        answer: 1,
-        rationale: "Cellular respiration breaks down organic molecules such as glucose to generate ATP.",
-        topic: "Biology",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which organelle contains the genetic material in most eukaryotic cells?",
-        choices: ["Nucleus", "Lysosome", "Vacuole", "Centrosome"],
-        answer: 0,
-        rationale: "In eukaryotic cells, most DNA is contained within the nucleus.",
-        topic: "Cell Biology",
-        difficulty: "Easy"
-      },
-      {
-        question: "What is the SI unit of force?",
-        choices: ["Joule", "Watt", "Newton", "Pascal"],
-        answer: 2,
-        rationale: "The newton (N) is the SI derived unit of force.",
-        topic: "Physics",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which law states that, at constant temperature, pressure and volume of a fixed amount of gas are inversely related?",
-        choices: ["Charles's law", "Boyle's law", "Avogadro's law", "Ohm's law"],
-        answer: 1,
-        rationale: "Boyle's law states that pressure is inversely proportional to volume when temperature and amount of gas are constant.",
-        topic: "Chemistry",
-        difficulty: "Moderate"
-      },
-      {
-        question: "Which type of plate boundary occurs when two tectonic plates move away from each other?",
-        choices: ["Convergent", "Divergent", "Transform", "Collision-only"],
-        answer: 1,
-        rationale: "At divergent boundaries, tectonic plates move apart and new crust can form.",
-        topic: "Earth Science",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which molecule carries genetic information in most living organisms?",
-        choices: ["ATP", "DNA", "Glucose", "Cholesterol"],
-        answer: 1,
-        rationale: "DNA stores hereditary genetic information in most organisms.",
-        topic: "Genetics",
-        difficulty: "Easy"
-      },
-      {
-        question: "A solution with a pH of 3 is best described as:",
-        choices: ["Strongly acidic", "Neutral", "Weakly basic", "Strongly basic"],
-        answer: 0,
-        rationale: "A pH below 7 is acidic; a pH of 3 indicates an acidic solution.",
-        topic: "Chemistry",
-        difficulty: "Easy"
-      },
-      {
-        question: "Which phenomenon explains the apparent change in frequency of a wave due to relative motion between the source and observer?",
-        choices: ["Doppler effect", "Photoelectric effect", "Greenhouse effect", "Compton effect"],
-        answer: 0,
-        rationale: "The Doppler effect is the observed change in frequency caused by relative motion between source and observer.",
-        topic: "Physics",
-        difficulty: "Moderate"
-      },
-      {
-        question: "Which level of ecological organization includes all living organisms and the nonliving environment in a defined area?",
-        choices: ["Population", "Community", "Ecosystem", "Species"],
-        answer: 2,
-        rationale: "An ecosystem includes living communities together with their physical and chemical environment.",
-        topic: "Ecology",
-        difficulty: "Easy"
-      }
-    ]
-  };
+  const questionBanks = window.RAALQuestionBanks || {};
 
   const modeLabels = {
     gened: "GenEd Hangman",
@@ -303,9 +54,45 @@
     return copy;
   }
 
+  function getQuestionBank(mode) {
+    const bank = questionBanks[mode];
+    if (!Array.isArray(bank)) {
+      throw new Error(`Question bank not found for mode: ${mode}`);
+    }
+    if (bank.length < QUESTIONS_PER_GAME) {
+      throw new Error(`Question bank for ${mode} needs at least ${QUESTIONS_PER_GAME} questions.`);
+    }
+    return bank;
+  }
+
+  function validateQuestion(question, mode, index) {
+    const required = ["question", "choices", "answer", "rationale", "topic", "difficulty"];
+    const missing = required.filter(key => !(key in question));
+
+    if (missing.length) {
+      throw new Error(`Invalid ${mode} question #${index + 1}: missing ${missing.join(", ")}`);
+    }
+
+    if (!Array.isArray(question.choices) || question.choices.length !== 4) {
+      throw new Error(`Invalid ${mode} question #${index + 1}: exactly 4 choices are required.`);
+    }
+
+    if (!Number.isInteger(question.answer) || question.answer < 0 || question.answer > 3) {
+      throw new Error(`Invalid ${mode} question #${index + 1}: answer must be 0, 1, 2, or 3.`);
+    }
+  }
+
+  function prepareQuestionBank(mode) {
+    const bank = getQuestionBank(mode);
+    bank.forEach((question, index) => validateQuestion(question, mode, index));
+    return bank;
+  }
+
   function startGame(mode) {
+    const bank = prepareQuestionBank(mode);
+
     state.mode = mode;
-    state.questions = shuffle(questionBanks[mode]).slice(0, QUESTIONS_PER_GAME);
+    state.questions = shuffle(bank).slice(0, QUESTIONS_PER_GAME);
     state.index = 0;
     state.lives = STARTING_LIVES;
     state.score = 0;
